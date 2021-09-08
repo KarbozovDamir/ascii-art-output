@@ -18,16 +18,7 @@ func main() {
 		fmt.Println("Non-valid characters")
 		return
 	}
-	//in order to pass the test - student$ go run . "" | cat -e
-	if args[1] == "" {
-		fmt.Println()
-		return
-	}
-	// in order to pass the test - student$ go run . "Hello\n" | cat -e
-	if args[1] == "\\n" {
-		fmt.Println("\n")
-		return
-	}
+
 	text := args[0]     // "hello" == [0]
 	font := ""          // shadow || thinkertoy
 	if len(args) == 2 { // mean [0] == "hello" [1] == shadow or thinkertoy
@@ -53,7 +44,6 @@ func main() {
 	}
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
-	// var fileTextLines []string
 
 	for fileScanner.Scan() {
 		arr = append(arr, fileScanner.Text())
