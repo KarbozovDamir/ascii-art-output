@@ -1,14 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
 
 const (
-	fileLen = 6623
+	fileLen = 855
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 		fmt.Println("Non-valid characters")
 		return
 	}
-	// in order to pass the test - student$ go run . "" | cat -e
+	//in order to pass the test - student$ go run . "" | cat -e
 	if args[1] == "" {
 		fmt.Println()
 		return
@@ -40,19 +41,33 @@ func main() {
 	}
 
 	//read the content of the file
-	argsArr := strings.Split(strings.ReplaceAll(args[1], "\\n", "\n"), "\n")
-	file, err := ioutil.ReadFile("fonts/" + font + ".txt")
+	argsArr := strings.Split(strings.ReplaceAll(text, "\\n", "\n"), "\n")
+
+	arr := []string{}
+
+	readFile, err := os.Open("fonts/" + font + ".txt")
+	defer readFile.Close()
+
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		log.Fatalf("failed to open file: %s", err)
 	}
-	if len(file) != fileLen {
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+	// var fileTextLines []string
+
+	for fileScanner.Scan() {
+		arr = append(arr, fileScanner.Text())
+	}
+
+	if len(arr) != fileLen {
 		fmt.Println("File is corrupted")
 		return
 	}
-	arr := []string{}
-	for _, el := range strings.Split(string(file), string('\n')) {
-		arr = append(arr, el)
+	larg := len(argsArr)
+	if larg >= 2 {
+		if argsArr[larg-1] == "" && argsArr[larg-2] != "" {
+			argsArr = argsArr[:larg-1]
+		}
 	}
 	printBanners(argsArr, arr)
 }
@@ -69,12 +84,13 @@ func isValid(s string) bool {
 
 //print the full outcome
 func printBanners(banners, arr []string) {
-	for _, el := range banners {
-		if el == "" {
+	for _, ch := range banners {
+		if ch == "" {
+			fmt.Println()
 			continue
 		}
 		for i := 0; i < 8; i++ {
-			for _, j := range el {
+			for _, j := range ch {
 				n := (j-32)*9 + 1
 				fmt.Print(arr[int(n)+i])
 			}
