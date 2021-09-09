@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,38 +14,37 @@ const (
 )
 
 func main() {
-	args := os.Args[1:]
-	if !isValid(args[1]) {
+	if len(os.Args) < 1 { //если нет аргументов выход
+		return
+	}
+	font := "standard"               //базовый шрифт
+	switch os.Args[len(os.Args)-1] { //последний элемент в массиве, font
+	case "shadow":
+		font = "shadow"
+	case "thinkertoy":
+		font = "thinkertoy"
+	}
+
+	//отсекаем font, если есть
+	pool := os.Args[1:]                  //скипаем путь
+	if os.Args[len(os.Args)-1] == font { // если последний элемент это font, тогда
+		pool = pool[:len(pool)-1] //исключаем font из списка строк
+	}
+
+	pool, err := makepool(pool)
+	if err != nil {
 		fmt.Println("Non-valid characters")
 		return
 	}
 
-	text := args[0]     // "hello" == [0]
-	font := ""          // shadow || thinkertoy
-	if len(args) == 2 { // mean [0] == "hello" [1] == shadow or thinkertoy
-		font = args[1]
-		// fmt.Println(text)
-	} else if len(args) == 1 { // without font(shadow and thin...)
-		font = "standard"
-	} else {
-		fmt.Println("ERROR") // when len(args) != 2 & !=1
-		return
-	}
-
-	//read the content of the file
-	argsArr := strings.Split(strings.ReplaceAll(text, "\\n", "\n"), "\n")
-
-	arr := []string{}
-
 	readFile, err := os.Open("fonts/" + font + ".txt")
-	defer readFile.Close()
-
 	if err != nil {
 		log.Fatalf("failed to open file: %s", err)
 	}
+	defer readFile.Close()
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
-
+	arr := []string{}
 	for fileScanner.Scan() {
 		arr = append(arr, fileScanner.Text())
 	}
@@ -53,13 +53,18 @@ func main() {
 		fmt.Println("File is corrupted")
 		return
 	}
-	larg := len(argsArr)
-	if larg >= 2 {
-		if argsArr[larg-1] == "" && argsArr[larg-2] != "" {
-			argsArr = argsArr[:larg-1]
+	printBanners(pool, arr)
+}
+
+func makepool(mass []string) (result []string, err error) {
+	for _, v := range mass {
+		if !isValid(v) {
+			return nil, errors.New("Error")
 		}
+		mass := strings.Split(strings.ReplaceAll(v, "\\n", "\n"), "\n")
+		result = append(result, mass...) // mass... - массив mass с N-количеством эл-тов
 	}
-	printBanners(argsArr, arr)
+	return
 }
 
 // check for valid of characters by runes from 32 to 126
@@ -76,7 +81,6 @@ func isValid(s string) bool {
 func printBanners(banners, arr []string) {
 	for _, ch := range banners {
 		if ch == "" {
-			fmt.Println()
 			continue
 		}
 		for i := 0; i < 8; i++ {
