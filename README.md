@@ -1,5 +1,4 @@
-# Ascii-art project
-> Ascii-art is a program that recieves a string 
-> as an argument (but the second argument must be 
-> the name of the template: shadow, standard, thinkertoy), 
-> and outputs the string in big letters using ASCII
+# ascii-art-output
+> Ascii-art-output as in the first subject(ascii-art) while writing the result into a file 
+> The file must be named by using the flag --output=<fileName.txt>, in which --output is the 
+> flag and <fileName.txt> is the > file name which will contain the output.
