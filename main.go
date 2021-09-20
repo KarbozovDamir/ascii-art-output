@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,38 +12,47 @@ const (
 	fileLen = 855
 )
 
+// check amount of arguments
 func main() {
-	if len(os.Args) < 1 { //если нет аргументов выход
+	if len(os.Args[1:]) < 2 || len(os.Args[1:]) > 3 {
+		fmt.Println("Non-valid amount of arguments")
 		return
 	}
-	font := "standard"               //базовый шрифт
-	switch os.Args[len(os.Args)-1] { //последний элемент в массиве, font
-	case "shadow":
-		font = "shadow"
-	case "thinkertoy":
-		font = "thinkertoy"
-	}
-
-	//отсекаем font, если есть
-	pool := os.Args[1:]                  //скипаем путь
-	if os.Args[len(os.Args)-1] == font { // если последний элемент это font, тогда
-		pool = pool[:len(pool)-1] //исключаем font из списка строк
-	}
-
-	pool, err := makepool(pool)
-	if err != nil {
+	args := os.Args[1:]
+	if !isValid(args[0]) {
 		fmt.Println("Non-valid characters")
 		return
 	}
 
+	text := args[0]    // "hello" == [0]
+	font := "standard" //base font
+	if len(args) == 2 {
+		switch args[1] {
+		case "shadow":
+			font = "shadow"
+		case "thinkertoy":
+			font = "thinkertoy"
+		case "standard":
+			font = "standard"
+		default:
+			fmt.Println("Non-valid font")
+			return
+		}
+	}
+
+	// Read the content of the file
+	argsArr := strings.Split(strings.ReplaceAll(text, "\\n", "\n"), "\n")
+	arr := []string{}
 	readFile, err := os.Open("fonts/" + font + ".txt")
+	defer readFile.Close()
+
 	if err != nil {
 		log.Fatalf("failed to open file: %s", err)
 	}
-	defer readFile.Close()
+
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
-	arr := []string{}
+
 	for fileScanner.Scan() {
 		arr = append(arr, fileScanner.Text())
 	}
@@ -53,21 +61,58 @@ func main() {
 		fmt.Println("File is corrupted")
 		return
 	}
-	printBanners(pool, arr)
-}
+	larg := len(argsArr)
 
-func makepool(mass []string) (result []string, err error) {
-	for _, v := range mass {
-		if !isValid(v) {
-			return nil, errors.New("Error")
+	if larg >= 2 {
+		if argsArr[larg-1] == "" && argsArr[larg-2] != "" {
+			argsArr = argsArr[:larg-1]
 		}
-		mass := strings.Split(strings.ReplaceAll(v, "\\n", "\n"), "\n")
-		result = append(result, mass...) // mass... - массив mass с N-количеством эл-тов
 	}
-	return
+	ifoutput := false
+	if len(args) == 3 {
+		ifoutput = true
+	}
+	if !ifoutput {
+		printBanners(argsArr, arr)
+		return
+	}
+	// Creating a new file
+	nf := args[2][9:]
+	if len(args[2][:9]) != 9 {
+		fmt.Println("no valid len")
+		os.Exit(0)
+	}
+	f, e := os.Create(nf)
+	if e != nil {
+		fmt.Println("Please, write the flag \"--output=\", followed by name of the file to create")
+		os.Exit(0)
+	}
+	output := Output(argsArr, arr)
+	f.WriteString(output)
+	fmt.Println("Done.")
+	defer f.Close()
 }
 
-// check for valid of characters by runes from 32 to 126
+func Output(banners, arr []string) string {
+	res := ""
+	for _, ch := range banners {
+		if ch == "" {
+			res += ""
+			continue
+		}
+		for i := 0; i < 8; i++ {
+			for _, j := range ch {
+				n := (j-32)*9 + 1
+				res += (arr[int(n)+i])
+			}
+			res += "\n"
+		}
+		res += "\n"
+	}
+	return res
+}
+
+// Check for valid of characters by runes from 32 to 126
 func isValid(s string) bool {
 	for _, ch := range s {
 		if ch < ' ' && ch != 10 || ch > '~' {
@@ -77,10 +122,11 @@ func isValid(s string) bool {
 	return true
 }
 
-//print the full outcome
+// Print the full outcome
 func printBanners(banners, arr []string) {
 	for _, ch := range banners {
 		if ch == "" {
+			fmt.Println()
 			continue
 		}
 		for i := 0; i < 8; i++ {
