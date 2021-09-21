@@ -7,13 +7,13 @@ import (
 )
 
 type data struct {
-	word   string
-	banner string
-	flag   string
-	isFlag bool
+	rawInput string
+	banner   string
+	flag     string
+	isFlag   bool
 }
 
-var dat data
+var d data
 
 const (
 	fileLen = 855
