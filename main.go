@@ -20,27 +20,27 @@ func initValues(s []string) {
 	d.banner = "standard"
 	if !isValid(s[0]) {
 		fmt.Println("Not Valid character")
-		os.Exit(1)
+		return
 	}
 	d.rawInput = s[0]
 	for i := 1; i < len(s); i++ {
 		if !isValid(s[i]) {
 			fmt.Println("Not Valid character")
-			os.Exit(1)
+			return
 		}
 		if strings.HasPrefix(s[i], "--output") {
 			if i < len(s)-1 { // hello --output   shadow
 				fmt.Println("Error order") // hello shadow --output
-				os.Exit(1)
+				return
 			}
 			if s[i] == "--output" || s[i] == "--output=" { //--output
 				fmt.Println("output: needs argument")
-				os.Exit(1)
+				return
 			}
 			temp := s[i]        // --output=asdsadad
 			if temp[8] != '=' { //=
 				fmt.Println("wrong operator")
-				os.Exit(1)
+				return
 			}
 			d.flag = temp[9:]
 			d.isFlag = true
