@@ -16,31 +16,32 @@ type data struct {
 
 var d data
 
-func initValues(s []string) {
+func initValues(s []string) bool {
 	d.banner = "standard"
 	if !isValid(s[0]) {
 		fmt.Println("Not Valid character")
-		return
+		return false
 	}
 	d.rawInput = s[0]
 	for i := 1; i < len(s); i++ {
 		if !isValid(s[i]) {
 			fmt.Println("Not Valid character")
-			return
+			return false
 		}
 		if strings.HasPrefix(s[i], "--output") {
 			if i < len(s)-1 { // hello --output   shadow
-				fmt.Println("Error order") // hello shadow --output
-				return
+				fmt.Println("Usage: go run . [STRING] [BANNER] [OPTION]")
+				fmt.Println("EX: go run . something standard --output=<fileName.txt>") // hello shadow --output
+				return false
 			}
 			if s[i] == "--output" || s[i] == "--output=" { //--output
 				fmt.Println("output: needs argument")
-				return
+				return false
 			}
 			temp := s[i]        // --output=asdsadad
 			if temp[8] != '=' { //=
 				fmt.Println("wrong operator")
-				return
+				return false
 			}
 			d.flag = temp[9:]
 			d.isFlag = true
@@ -48,21 +49,22 @@ func initValues(s []string) {
 		}
 		d.banner = s[i]
 	}
+	return true
 }
 
 // check amount of arguments
 func main() {
-	if len(os.Args[1:]) > 3 {
-		fmt.Println("Non-valid amount of arguments")
-		return
-	} else if len(os.Args[1:]) < 2 {
-		fmt.Println("Please type the text (at least 1 argument)")
+	if len(os.Args[1:]) != 3 {
+		fmt.Println("Usage: go run . [STRING] [BANNER] [OPTION]")
+		fmt.Println("EX: go run . something standard --output=<fileName.txt>")
 		return
 	}
+
 	args := os.Args[1:]
 
-	initValues(args) //initiliaze data -> split arguments : word, banner, flag and adding in data struct
-
+	if !initValues(args) { //initiliaze data -> split arguments : word, banner, flag and adding in data struct
+		return
+	}
 	splittedWord := strings.Split(d.rawInput, "\\n")
 
 	file, err := os.Open("fonts/" + d.banner + ".txt")
@@ -142,4 +144,13 @@ func isValid(s string) bool {
 		}
 	}
 	return true
+}
+
+func fill(scanner *bufio.Scanner) []string {
+	data := make([]string, 0)
+
+	for scanner.Scan() { //it will go until reach to the end of file
+		data = append(data, scanner.Text()) // scan by line
+	}
+	return data
 }
