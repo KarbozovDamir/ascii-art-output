@@ -55,6 +55,9 @@ func main() {
 	if len(os.Args[1:]) > 3 {
 		fmt.Println("Non-valid amount of arguments")
 		return
+	} else if len(os.Args[1:]) < 2 {
+		fmt.Println("Please type the text (at least 1 argument)")
+		return
 	}
 	args := os.Args[1:]
 
@@ -101,7 +104,12 @@ func main() {
 			}
 		}
 	} else { // else write file
-		file, err := os.Create(d.flag + ".txt")
+		_, err := os.Open(d.flag)
+		if err == nil {
+			fmt.Printf("File already exists\n")
+			return
+		}
+		file, err := os.Create(d.flag)
 		defer file.Close()
 		if err != nil {
 			fmt.Println(err)
